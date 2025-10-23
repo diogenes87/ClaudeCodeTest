@@ -1,0 +1,25 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "java",
+            "name": "Oracle MCP CLI",
+            "request": "launch",
+            "mainClass": "com.example.mcp.cli.CommandLineChat",
+            "projectName": "oracle-mcp-server",
+            "env": {
+                "OPENAI_API_KEY": "${env:OPENAI_API_KEY}"
+            },
+            "console": "integratedTerminal"
+        },
+        {
+            "type": "java",
+            "name": "Quarkus Dev Mode",
+            "request": "launch",
+            "mainClass": "io.quarkus.bootstrap.runner.QuarkusEntryPoint",
+            "projectName": "oracle-mcp-server",
+            "preLaunchTask": "quarkus:dev",
+            "console": "integratedTerminal"
+        }
+    ]
+}

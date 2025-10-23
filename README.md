@@ -78,6 +78,397 @@ com.example.mcp/
 - **Jackson** - JSON serialization
 - **Maven** - Build tool
 
+## Installation & Setup
+
+### Prerequisites
+
+Before you begin, ensure you have the following installed on your local machine:
+
+1. **Java Development Kit (JDK) 17 or higher**
+   ```bash
+   # Check Java version
+   java -version
+
+   # Should show: java version "17.x.x" or higher
+   ```
+
+   Download from: https://adoptium.net/ or https://www.oracle.com/java/technologies/downloads/
+
+2. **Apache Maven 3.8.x or higher**
+   ```bash
+   # Check Maven version
+   mvn -version
+
+   # Should show: Apache Maven 3.8.x or higher
+   ```
+
+   Download from: https://maven.apache.org/download.cgi
+
+3. **Git** (for cloning the repository)
+   ```bash
+   git --version
+   ```
+
+4. **OpenAI API Key** (for LLM integration)
+   - Sign up at: https://platform.openai.com/
+   - Generate an API key from your account dashboard
+
+### Step 1: Clone the Repository
+
+```bash
+git clone <repository-url>
+cd ClaudeCodeTest
+```
+
+### Step 2: Configure Environment Variables
+
+Set your OpenAI API key:
+
+**Linux/macOS:**
+```bash
+export OPENAI_API_KEY=your-api-key-here
+```
+
+**Windows (Command Prompt):**
+```cmd
+set OPENAI_API_KEY=your-api-key-here
+```
+
+**Windows (PowerShell):**
+```powershell
+$env:OPENAI_API_KEY="your-api-key-here"
+```
+
+**Permanent Configuration (Linux/macOS):**
+
+Add to `~/.bashrc` or `~/.zshrc`:
+```bash
+export OPENAI_API_KEY=your-api-key-here
+```
+
+Then reload:
+```bash
+source ~/.bashrc  # or source ~/.zshrc
+```
+
+### Step 3: Build the Project
+
+```bash
+mvn clean install
+```
+
+This will:
+- Download all dependencies
+- Compile the source code
+- Run tests (if any)
+- Package the application
+
+## Running the Application
+
+You have multiple options to run the Oracle MCP Server:
+
+### Option 1: Interactive CLI Chat (Recommended for Testing)
+
+This starts an interactive chat session where you can talk to the AI and it will use the Oracle DB tools to answer your questions.
+
+**From Command Line:**
+```bash
+mvn exec:java
+```
+
+Or with explicit main class:
+```bash
+mvn exec:java -Dexec.mainClass="com.example.mcp.cli.CommandLineChat"
+```
+
+**From IntelliJ IDEA:**
+
+1. Open the project in IntelliJ IDEA
+2. Navigate to `src/main/java/com/example/mcp/cli/CommandLineChat.java`
+3. Right-click on the file
+4. Select **"Run 'CommandLineChat.main()'"**
+
+Or:
+1. Open `CommandLineChat.java`
+2. Click the green play button (▶) next to the `main` method
+3. Select **"Run 'CommandLineChat.main()'"**
+
+**Set environment variables in IntelliJ:**
+1. Go to **Run** → **Edit Configurations...**
+2. Select the `CommandLineChat` configuration
+3. Add Environment Variable: `OPENAI_API_KEY=your-api-key-here`
+4. Click **OK**
+5. Run the configuration
+
+**From VS Code:**
+
+1. Open the project in VS Code
+2. Install the **"Extension Pack for Java"** (if not already installed)
+3. Open `src/main/java/com/example/mcp/cli/CommandLineChat.java`
+4. Click **"Run"** above the `main` method
+
+Or use the integrated terminal:
+```bash
+mvn exec:java
+```
+
+**Set environment variables in VS Code:**
+
+Create a `.vscode/launch.json` file:
+```json
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "java",
+            "name": "CommandLineChat",
+            "request": "launch",
+            "mainClass": "com.example.mcp.cli.CommandLineChat",
+            "projectName": "oracle-mcp-server",
+            "env": {
+                "OPENAI_API_KEY": "your-api-key-here"
+            }
+        }
+    ]
+}
+```
+
+### Option 2: Run as Quarkus REST Server
+
+Start the full Quarkus application with REST API endpoints:
+
+**Development Mode (with hot reload):**
+```bash
+mvn quarkus:dev
+```
+
+The server will start at: `http://localhost:8080`
+
+**From IntelliJ IDEA:**
+1. Open Terminal in IntelliJ (View → Tool Windows → Terminal)
+2. Run: `mvn quarkus:dev`
+
+**From VS Code:**
+1. Open integrated terminal (Ctrl+` or Cmd+`)
+2. Run: `mvn quarkus:dev`
+
+**Production Mode:**
+```bash
+# Build the application
+mvn clean package
+
+# Run the JAR
+java -jar target/quarkus-app/quarkus-run.jar
+```
+
+### Option 3: Run Packaged JAR
+
+```bash
+# Package the application
+mvn clean package -DskipTests
+
+# Run the CLI
+java -cp target/quarkus-app/quarkus-run.jar com.example.mcp.cli.CommandLineChat
+```
+
+## Using the Interactive CLI Chat
+
+When you run the CLI chat application, you'll see:
+
+```
+╔════════════════════════════════════════════════════════════╗
+║        Oracle MCP Server - Interactive Chat               ║
+║        Powered by LangChain4J & OpenAI                     ║
+╚════════════════════════════════════════════════════════════╝
+
+✓ Connected to OpenAI with model: gpt-4
+✓ Oracle Database tools loaded and ready
+
+Available commands:
+  - Type your question to chat with the AI
+  - Type 'help' to see available database tools
+  - Type 'exit' or 'quit' to end the session
+
+Example questions:
+  - Connect to database omsdb1/omsdb1@indltel300:DIODB100
+  - Show me all tables in the database
+  - What are the columns in the EMPLOYEES table?
+  - Execute query: SELECT * FROM departments
+
+════════════════════════════════════════════════════════════
+
+You:
+```
+
+### Example Conversation:
+
+```
+You: Connect to database omsdb1/omsdb1@indltel300:DIODB100
+
+AI: I'll connect to the Oracle database with those credentials...
+[Shows connection result with connection ID]
+
+You: Show me all tables in the database
+
+AI: Here are all the tables in the database:
+[Lists all tables]
+
+You: What are the columns in the EMPLOYEES table?
+
+AI: The EMPLOYEES table has the following columns:
+[Lists columns with data types]
+
+You: Execute this query: SELECT * FROM employees WHERE department = 'IT'
+
+AI: Here are the results:
+[Shows query results]
+
+You: exit
+
+Goodbye! Thanks for using Oracle MCP Server.
+```
+
+### CLI Commands:
+
+- **help** - Display available database tools
+- **exit** or **quit** - End the chat session
+- **Any question** - Chat with AI (it will use tools automatically)
+
+## IDE-Specific Setup
+
+### IntelliJ IDEA Setup
+
+1. **Open Project:**
+   - File → Open → Select the project folder
+   - IntelliJ will automatically detect it as a Maven project
+
+2. **Configure JDK:**
+   - File → Project Structure → Project
+   - Set SDK to Java 17 or higher
+
+3. **Enable Annotation Processing (for Lombok):**
+   - File → Settings → Build, Execution, Deployment → Compiler → Annotation Processors
+   - Check "Enable annotation processing"
+
+4. **Install Lombok Plugin:**
+   - File → Settings → Plugins
+   - Search for "Lombok"
+   - Install and restart IntelliJ
+
+5. **Run Configuration:**
+   - Run → Edit Configurations → Add New → Application
+   - Name: `Oracle MCP CLI`
+   - Main class: `com.example.mcp.cli.CommandLineChat`
+   - Environment variables: `OPENAI_API_KEY=your-api-key`
+   - Working directory: Project root
+
+6. **Maven Tool Window:**
+   - View → Tool Windows → Maven
+   - Use this to run Maven goals (clean, install, quarkus:dev)
+
+### VS Code Setup
+
+1. **Install Required Extensions:**
+   - Extension Pack for Java (Microsoft)
+   - Maven for Java
+   - Lombok Annotations Support for VS Code
+
+2. **Open Project:**
+   - File → Open Folder → Select project folder
+
+3. **Configure Java:**
+   - Open Command Palette (Ctrl+Shift+P or Cmd+Shift+P)
+   - Type: "Java: Configure Java Runtime"
+   - Set Java 17 as the project JDK
+
+4. **Create Launch Configuration:**
+
+   Create `.vscode/launch.json`:
+   ```json
+   {
+       "version": "0.2.0",
+       "configurations": [
+           {
+               "type": "java",
+               "name": "Oracle MCP CLI",
+               "request": "launch",
+               "mainClass": "com.example.mcp.cli.CommandLineChat",
+               "projectName": "oracle-mcp-server",
+               "env": {
+                   "OPENAI_API_KEY": "your-api-key-here"
+               }
+           },
+           {
+               "type": "java",
+               "name": "Quarkus Dev",
+               "request": "launch",
+               "mainClass": "io.quarkus.runner.GeneratedMain",
+               "projectName": "oracle-mcp-server",
+               "preLaunchTask": "quarkus:dev"
+           }
+       ]
+   }
+   ```
+
+5. **Create Tasks Configuration:**
+
+   Create `.vscode/tasks.json`:
+   ```json
+   {
+       "version": "2.0.0",
+       "tasks": [
+           {
+               "label": "quarkus:dev",
+               "type": "shell",
+               "command": "mvn quarkus:dev",
+               "isBackground": true,
+               "problemMatcher": []
+           }
+       ]
+   }
+   ```
+
+6. **Run the Application:**
+   - Press F5 or use Debug → Start Debugging
+   - Select the desired configuration
+
+## Troubleshooting
+
+### Common Issues:
+
+1. **"OPENAI_API_KEY environment variable is not set"**
+   - Make sure you've set the environment variable
+   - Restart your terminal/IDE after setting it
+
+2. **Maven dependencies not downloading**
+   ```bash
+   mvn clean install -U
+   ```
+
+3. **Lombok not working**
+   - Make sure Lombok plugin is installed in your IDE
+   - Enable annotation processing
+   - Reimport Maven project
+
+4. **Port 8080 already in use** (for Quarkus server)
+   - Change port in `src/main/resources/application.properties`:
+     ```properties
+     quarkus.http.port=8081
+     ```
+
+5. **Cannot connect to Oracle Database**
+   - Verify database credentials
+   - Check network connectivity
+   - Ensure Oracle database is running and accessible
+
+6. **Java version mismatch**
+   ```bash
+   # Check your Java version
+   java -version
+
+   # Should be 17 or higher
+   ```
+
 ## REST API Endpoints
 
 ### Connection Management
