@@ -16,10 +16,13 @@ public class LLMProviderFactory {
 
     // List of Gemini models to try (in order of preference for free tier)
     private static final String[] GEMINI_MODELS_TO_TRY = {
-        "gemini-1.5-flash-8b",      // Free tier optimized
-        "gemini-1.5-flash",          // Standard free tier
-        "gemini-pro",                // Legacy but stable
+        "gemini-1.5-flash",          // Current standard free tier (most likely to work)
+        "gemini-1.0-pro",            // Stable v1.0 model
+        "gemini-pro",                // Legacy name
+        "gemini-1.5-flash-latest",   // Latest version
+        "gemini-1.5-pro",            // Pro version (might work on free tier)
         "models/gemini-1.5-flash",   // With models/ prefix
+        "models/gemini-1.0-pro",     // v1.0 with prefix
         "models/gemini-pro"          // Legacy with prefix
     };
 
