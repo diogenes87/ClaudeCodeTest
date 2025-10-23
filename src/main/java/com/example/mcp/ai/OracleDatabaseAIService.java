@@ -2,13 +2,14 @@ package com.example.mcp.ai;
 
 import dev.langchain4j.service.SystemMessage;
 import dev.langchain4j.service.UserMessage;
-import io.quarkiverse.langchain4j.RegisterAiService;
 
 /**
  * AI Service for Oracle Database operations
  * This service integrates with LLMs to provide natural language access to Oracle DB operations
+ *
+ * Note: This interface can be used with LangChain4J's AiServices.builder()
+ * For Quarkus integration, add @RegisterAiService annotation
  */
-@RegisterAiService(tools = {com.example.mcp.tools.OracleDbTools.class})
 public interface OracleDatabaseAIService {
 
     @SystemMessage("""

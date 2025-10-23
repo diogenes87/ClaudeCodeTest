@@ -23,8 +23,10 @@ public class OracleDbMcpResource {
     @Inject
     OracleDbTools oracleDbTools;
 
-    @Inject
-    OracleDatabaseAIService aiService;
+    // Note: AI Service requires Quarkus LangChain4J extension
+    // For CLI usage, use CommandLineChat instead
+    // @Inject
+    // OracleDatabaseAIService aiService;
 
     @POST
     @Path("/connect")
@@ -144,6 +146,11 @@ public class OracleDbMcpResource {
         }
     }
 
+    // Note: AI endpoints require Quarkus LangChain4J extension with @RegisterAIService
+    // For AI chat functionality, use the CLI (CommandLineChat) instead
+    // These endpoints are disabled to avoid dependency conflicts
+
+    /*
     @POST
     @Path("/ai/chat")
     public Response chatWithAI(Map<String, String> request) {
@@ -173,6 +180,7 @@ public class OracleDbMcpResource {
                     .build();
         }
     }
+    */
 
     @GET
     @Path("/health")
