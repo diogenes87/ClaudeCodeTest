@@ -72,11 +72,73 @@ com.example.mcp/
 
 - **Java 17** - Programming language
 - **Quarkus 3.6.0** - Framework with CDI (@ApplicationScoped)
-- **LangChain4J 0.34.0** - AI/LLM integration
+- **LangChain4J 0.34.0** - AI/LLM integration with multi-provider support
 - **Oracle JDBC 23.3.0** - Database connectivity
 - **Lombok** - Reduce boilerplate code
 - **Jackson** - JSON serialization
 - **Maven** - Build tool
+
+## LLM Provider Support
+
+The Oracle MCP Server features a **transparent abstraction layer** that supports multiple Large Language Model providers. You can switch between providers simply by changing environment variables - no code changes required!
+
+### Supported Providers
+
+| Provider | Environment Variable | Default Model | Status |
+|----------|---------------------|---------------|--------|
+| **OpenAI** | `OPENAI_API_KEY` | `gpt-4` | ✅ Fully Supported |
+| **Google Gemini** | `GEMINI_API_KEY` | `gemini-pro` | ✅ Fully Supported |
+| **Anthropic Claude** | `ANTHROPIC_API_KEY` | `claude-3-sonnet` | 🔜 Coming Soon |
+
+### Auto-Detection
+
+The application automatically detects which LLM provider to use based on your environment variables:
+
+1. **Priority Order**: OpenAI → Gemini → Anthropic
+2. **No Configuration Needed**: Just set your API key
+3. **Fallback Support**: If multiple keys are set, uses highest priority
+4. **Extensible**: Easy to add new providers
+
+### Architecture
+
+The multi-provider support is implemented through a clean abstraction:
+
+```
+LLMProvider (Enum)
+    ↓
+LLMConfig (Configuration)
+    ↓
+LLMProviderFactory (Factory Pattern)
+    ↓
+ChatLanguageModel (LangChain4J Interface)
+```
+
+**Key Components:**
+- `LLMProvider` - Enum defining supported providers
+- `LLMConfig` - Configuration with temperature, timeout, model name
+- `LLMProviderFactory` - Creates appropriate ChatLanguageModel instance
+
+### Switching Providers
+
+Simply change your environment variable:
+
+```bash
+# Use OpenAI
+export OPENAI_API_KEY=sk-...
+mvn exec:java
+
+# Switch to Gemini (unset OpenAI first or it takes priority)
+unset OPENAI_API_KEY
+export GEMINI_API_KEY=...
+mvn exec:java
+```
+
+### Custom Models
+
+You can specify custom models for each provider:
+
+- **OpenAI**: `gpt-4`, `gpt-4-turbo`, `gpt-3.5-turbo`
+- **Gemini**: `gemini-pro`, `gemini-ultra` (when available)
 
 ## Installation & Setup
 
@@ -109,9 +171,23 @@ Before you begin, ensure you have the following installed on your local machine:
    git --version
    ```
 
-4. **OpenAI API Key** (for LLM integration)
+4. **LLM API Key** (Choose one or more)
+
+   The application supports multiple LLM providers. You need at least one:
+
+   **Option A: OpenAI (GPT-4, GPT-3.5)**
    - Sign up at: https://platform.openai.com/
    - Generate an API key from your account dashboard
+   - Set environment variable: `OPENAI_API_KEY`
+
+   **Option B: Google Gemini**
+   - Sign up at: https://ai.google.dev/
+   - Generate an API key from Google AI Studio
+   - Set environment variable: `GEMINI_API_KEY`
+
+   **Option C: Anthropic Claude** (Coming Soon)
+   - Sign up at: https://www.anthropic.com/
+   - Set environment variable: `ANTHROPIC_API_KEY`
 
 ### Step 1: Clone the Repository
 
@@ -122,28 +198,65 @@ cd ClaudeCodeTest
 
 ### Step 2: Configure Environment Variables
 
-Set your OpenAI API key:
+Choose your preferred LLM provider and set the corresponding API key:
+
+#### Option 1: Using OpenAI
 
 **Linux/macOS:**
 ```bash
-export OPENAI_API_KEY=your-api-key-here
+export OPENAI_API_KEY=sk-your-api-key-here
 ```
 
 **Windows (Command Prompt):**
 ```cmd
-set OPENAI_API_KEY=your-api-key-here
+set OPENAI_API_KEY=sk-your-api-key-here
 ```
 
 **Windows (PowerShell):**
 ```powershell
-$env:OPENAI_API_KEY="your-api-key-here"
+$env:OPENAI_API_KEY="sk-your-api-key-here"
+```
+
+#### Option 2: Using Google Gemini
+
+**Linux/macOS:**
+```bash
+export GEMINI_API_KEY=your-gemini-api-key-here
+```
+
+**Windows (Command Prompt):**
+```cmd
+set GEMINI_API_KEY=your-gemini-api-key-here
+```
+
+**Windows (PowerShell):**
+```powershell
+$env:GEMINI_API_KEY="your-gemini-api-key-here"
+```
+
+#### Using Multiple Providers
+
+You can set multiple API keys. The application will auto-select in this priority order:
+1. OpenAI (if `OPENAI_API_KEY` is set)
+2. Gemini (if `GEMINI_API_KEY` is set)
+3. Anthropic (if `ANTHROPIC_API_KEY` is set)
+
+**Example with multiple providers:**
+```bash
+export OPENAI_API_KEY=sk-...
+export GEMINI_API_KEY=...
+# OpenAI will be used (higher priority)
 ```
 
 **Permanent Configuration (Linux/macOS):**
 
 Add to `~/.bashrc` or `~/.zshrc`:
 ```bash
-export OPENAI_API_KEY=your-api-key-here
+# Choose your preferred provider
+export OPENAI_API_KEY=sk-your-api-key-here
+# or
+export GEMINI_API_KEY=your-gemini-api-key-here
+# or both
 ```
 
 Then reload:
@@ -278,10 +391,11 @@ When you run the CLI chat application, you'll see:
 ```
 ╔════════════════════════════════════════════════════════════╗
 ║        Oracle MCP Server - Interactive Chat               ║
-║        Powered by LangChain4J & OpenAI                     ║
+║        Powered by LangChain4J & Multiple LLM Providers    ║
 ╚════════════════════════════════════════════════════════════╝
 
-✓ Connected to OpenAI with model: gpt-4
+✓ Connected to OpenAI
+✓ Using model: gpt-4
 ✓ Oracle Database tools loaded and ready
 
 Available commands:
@@ -333,6 +447,52 @@ Goodbye! Thanks for using Oracle MCP Server.
 - **help** - Display available database tools
 - **exit** or **quit** - End the chat session
 - **Any question** - Chat with AI (it will use tools automatically)
+
+### Using Different LLM Providers
+
+#### Example 1: Using OpenAI GPT-4
+
+```bash
+export OPENAI_API_KEY=sk-proj-...
+mvn exec:java
+```
+
+Output:
+```
+✓ Connected to OpenAI
+✓ Using model: gpt-4
+✓ Oracle Database tools loaded and ready
+```
+
+#### Example 2: Using Google Gemini
+
+```bash
+export GEMINI_API_KEY=AIza...
+mvn exec:java
+```
+
+Output:
+```
+✓ Connected to Google Gemini
+✓ Using model: gemini-pro
+✓ Oracle Database tools loaded and ready
+```
+
+#### Example 3: Switching Between Providers
+
+```bash
+# Start with OpenAI
+export OPENAI_API_KEY=sk-...
+mvn exec:java
+# ... use the application ...
+# Exit (Ctrl+C)
+
+# Switch to Gemini
+unset OPENAI_API_KEY
+export GEMINI_API_KEY=AIza...
+mvn exec:java
+# ... now using Gemini ...
+```
 
 ## IDE-Specific Setup
 

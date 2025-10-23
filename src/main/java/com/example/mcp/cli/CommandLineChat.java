@@ -2,13 +2,13 @@ package com.example.mcp.cli;
 
 import com.example.mcp.config.JsonConfiguration;
 import com.example.mcp.config.OracleConnectionManager;
+import com.example.mcp.config.llm.LLMConfig;
+import com.example.mcp.config.llm.LLMProvider;
+import com.example.mcp.config.llm.LLMProviderFactory;
 import com.example.mcp.tools.OracleDbTools;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import dev.langchain4j.agent.tool.ToolSpecification;
-import dev.langchain4j.agent.tool.ToolSpecifications;
 import dev.langchain4j.memory.chat.MessageWindowChatMemory;
 import dev.langchain4j.model.chat.ChatLanguageModel;
-import dev.langchain4j.model.openai.OpenAiChatModel;
 import dev.langchain4j.service.AiServices;
 
 import java.util.Scanner;
@@ -16,28 +16,33 @@ import java.util.Scanner;
 /**
  * Command-line interface for Oracle MCP Server
  * Allows interactive chat with LLM that can use Oracle DB tools
+ * Supports multiple LLM providers: OpenAI, Google Gemini, and more
  */
 public class CommandLineChat {
-
-    private static final String OPENAI_API_KEY = System.getenv("OPENAI_API_KEY");
-    private static final String DEFAULT_MODEL = "gpt-4";
 
     public static void main(String[] args) {
         System.out.println("╔════════════════════════════════════════════════════════════╗");
         System.out.println("║        Oracle MCP Server - Interactive Chat               ║");
-        System.out.println("║        Powered by LangChain4J & OpenAI                     ║");
+        System.out.println("║        Powered by LangChain4J & Multiple LLM Providers    ║");
         System.out.println("╚════════════════════════════════════════════════════════════╝");
         System.out.println();
 
-        // Check for API key
-        if (OPENAI_API_KEY == null || OPENAI_API_KEY.isEmpty()) {
-            System.err.println("ERROR: OPENAI_API_KEY environment variable is not set!");
+        // Check for LLM provider configuration
+        if (!LLMProviderFactory.isAnyProviderConfigured()) {
+            System.err.println("ERROR: No LLM provider configured!");
             System.err.println();
-            System.err.println("Please set it using:");
-            System.err.println("  export OPENAI_API_KEY=your-api-key-here");
+            System.err.println("Please set one of the following environment variables:");
+            System.err.println("  - OPENAI_API_KEY=your-openai-key (for OpenAI GPT models)");
+            System.err.println("  - GEMINI_API_KEY=your-gemini-key (for Google Gemini)");
+            System.err.println("  - ANTHROPIC_API_KEY=your-anthropic-key (coming soon)");
             System.err.println();
-            System.err.println("Or you can run with:");
-            System.err.println("  OPENAI_API_KEY=your-key mvn exec:java -Dexec.mainClass=\"com.example.mcp.cli.CommandLineChat\"");
+            System.err.println("Example:");
+            System.err.println("  export OPENAI_API_KEY=sk-...");
+            System.err.println("  mvn exec:java");
+            System.err.println();
+            System.err.println("Or set multiple keys and the system will auto-select:");
+            System.err.println("  export OPENAI_API_KEY=sk-...");
+            System.err.println("  export GEMINI_API_KEY=...");
             System.exit(1);
         }
 
@@ -52,13 +57,9 @@ public class CommandLineChat {
             injectField(tools, "connectionManager", connectionManager);
             injectField(tools, "objectMapper", objectMapper);
 
-            // Create ChatLanguageModel
-            ChatLanguageModel chatModel = OpenAiChatModel.builder()
-                    .apiKey(OPENAI_API_KEY)
-                    .modelName(DEFAULT_MODEL)
-                    .temperature(0.7)
-                    .timeout(java.time.Duration.ofSeconds(60))
-                    .build();
+            // Create ChatLanguageModel using factory (auto-detects provider)
+            LLMConfig llmConfig = LLMConfig.fromEnvironment();
+            ChatLanguageModel chatModel = LLMProviderFactory.create(llmConfig);
 
             // Create AI Service with tools
             OracleDatabaseChatService chatService = AiServices.builder(OracleDatabaseChatService.class)
@@ -67,7 +68,8 @@ public class CommandLineChat {
                     .chatMemory(MessageWindowChatMemory.withMaxMessages(20))
                     .build();
 
-            System.out.println("✓ Connected to OpenAI with model: " + DEFAULT_MODEL);
+            System.out.println("✓ Connected to " + llmConfig.getProvider().getDisplayName());
+            System.out.println("✓ Using model: " + llmConfig.getModelName());
             System.out.println("✓ Oracle Database tools loaded and ready");
             System.out.println();
             System.out.println("Available commands:");
