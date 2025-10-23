@@ -5,7 +5,7 @@ package com.example.mcp.config.llm;
  */
 public enum LLMProvider {
     OPENAI("OpenAI", "gpt-4", "OPENAI_API_KEY"),
-    GEMINI("Google Gemini", "gemini-1.5-flash-8b", "GEMINI_API_KEY"),
+    GEMINI("Google Gemini", "gemini-1.5-flash-8b-001", "GEMINI_API_KEY"),
     ANTHROPIC("Anthropic Claude", "claude-3-sonnet-20240229", "ANTHROPIC_API_KEY");
 
     private final String displayName;
