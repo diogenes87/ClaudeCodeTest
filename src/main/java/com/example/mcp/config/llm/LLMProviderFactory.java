@@ -74,7 +74,6 @@ public class LLMProviderFactory {
             .apiKey(config.getApiKey())
             .modelName(config.getModelName())
             .temperature(config.getTemperature())
-            .timeout(Duration.ofSeconds(config.getTimeoutSeconds()))
             .maxOutputTokens(config.getMaxTokens())
             .logRequestsAndResponses(false)
             .build();
