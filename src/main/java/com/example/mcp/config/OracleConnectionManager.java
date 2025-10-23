@@ -1,8 +1,8 @@
 package com.example.mcp.config;
 
 import com.example.mcp.dto.OracleConnectionRequest;
-import jakarta.enterprise.context.ApplicationScoped;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Component;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -15,7 +15,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * Manages Oracle Database connections
  */
 @Slf4j
-@ApplicationScoped
+@Component
 public class OracleConnectionManager {
 
     private final Map<String, Connection> connections = new ConcurrentHashMap<>();

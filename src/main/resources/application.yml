@@ -1,0 +1,66 @@
+spring:
+  application:
+    name: oracle-mcp-server
+
+  # Server Configuration
+  server:
+    port: 8080
+    servlet:
+      context-path: /
+
+  # Jackson Configuration
+  jackson:
+    default-property-inclusion: non_null
+    serialization:
+      indent_output: true
+      fail_on_empty_beans: false
+
+# Management Endpoints (Actuator)
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: always
+
+# Logging Configuration
+logging:
+  level:
+    root: INFO
+    com.example.mcp: DEBUG
+    org.springframework.web: INFO
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
+
+# LangChain4J Configuration
+# Note: Set environment variables for LLM providers
+# OPENAI_API_KEY - for OpenAI GPT models
+# GEMINI_API_KEY - for Google Gemini models
+
+---
+# Development Profile
+spring:
+  config:
+    activate:
+      on-profile: dev
+  devtools:
+    restart:
+      enabled: true
+
+logging:
+  level:
+    com.example.mcp: DEBUG
+
+---
+# Production Profile
+spring:
+  config:
+    activate:
+      on-profile: prod
+
+logging:
+  level:
+    root: WARN
+    com.example.mcp: INFO

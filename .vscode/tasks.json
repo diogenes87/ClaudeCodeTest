@@ -2,13 +2,13 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "quarkus:dev",
+            "label": "spring-boot:run",
             "type": "shell",
             "command": "mvn",
-            "args": ["quarkus:dev"],
+            "args": ["spring-boot:run"],
             "isBackground": true,
             "problemMatcher": {
-                "owner": "quarkus",
+                "owner": "spring-boot",
                 "pattern": {
                     "regexp": "^(.*):(\\d+):\\s+(warning|error):\\s+(.*)$",
                     "file": 1,
@@ -19,7 +19,7 @@
                 "background": {
                     "activeOnStart": true,
                     "beginsPattern": "^.*Scanning for projects.*$",
-                    "endsPattern": "^.*Quarkus.*started in.*$"
+                    "endsPattern": "^.*Started OracleMcpServerApplication.*$"
                 }
             },
             "group": {
@@ -36,11 +36,11 @@
             "problemMatcher": []
         },
         {
-            "label": "mvn exec:java (CLI)",
+            "label": "mvn package",
             "type": "shell",
             "command": "mvn",
-            "args": ["exec:java"],
-            "group": "test",
+            "args": ["package", "-DskipTests"],
+            "group": "build",
             "problemMatcher": []
         }
     ]

@@ -5,9 +5,9 @@ import com.example.mcp.dto.*;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.langchain4j.agent.tool.Tool;
-import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.inject.Inject;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Component;
 
 import java.sql.*;
 import java.util.*;
@@ -17,14 +17,12 @@ import java.util.*;
  * Provides methods for database operations through LangChain4J tools
  */
 @Slf4j
-@ApplicationScoped
+@Component
+@RequiredArgsConstructor
 public class OracleDbTools {
 
-    @Inject
-    OracleConnectionManager connectionManager;
-
-    @Inject
-    ObjectMapper objectMapper;
+    private final OracleConnectionManager connectionManager;
+    private final ObjectMapper objectMapper;
 
     /**
      * Method 1: Create a connection with Oracle DB
