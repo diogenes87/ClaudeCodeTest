@@ -14,6 +14,15 @@ import java.time.Duration;
 @Slf4j
 public class LLMProviderFactory {
 
+    // List of Gemini models to try (in order of preference for free tier)
+    private static final String[] GEMINI_MODELS_TO_TRY = {
+        "gemini-1.5-flash-8b",      // Free tier optimized
+        "gemini-1.5-flash",          // Standard free tier
+        "gemini-pro",                // Legacy but stable
+        "models/gemini-1.5-flash",   // With models/ prefix
+        "models/gemini-pro"          // Legacy with prefix
+    };
+
     /**
      * Create ChatLanguageModel from environment variables (auto-detect provider)
      */
@@ -65,18 +74,65 @@ public class LLMProviderFactory {
     }
 
     /**
-     * Create Google Gemini ChatLanguageModel
+     * Create Google Gemini ChatLanguageModel with fallback model support
      */
     private static ChatLanguageModel createGemini(LLMConfig config) {
-        log.debug("Configuring Google Gemini with model: {}", config.getModelName());
+        String requestedModel = config.getModelName();
+        log.debug("Configuring Google Gemini with model: {}", requestedModel);
 
-        return GoogleAiGeminiChatModel.builder()
-            .apiKey(config.getApiKey())
-            .modelName(config.getModelName())
-            .temperature(config.getTemperature())
-            .maxOutputTokens(config.getMaxTokens())
-            .logRequestsAndResponses(false)
-            .build();
+        // Try the requested model first
+        ChatLanguageModel model = tryCreateGeminiModel(config.getApiKey(), requestedModel, config);
+        if (model != null) {
+            return model;
+        }
+
+        // If requested model fails, try fallback models
+        log.warn("Requested Gemini model '{}' not available, trying fallback models...", requestedModel);
+
+        for (String fallbackModel : GEMINI_MODELS_TO_TRY) {
+            if (fallbackModel.equals(requestedModel)) {
+                continue; // Skip already tried model
+            }
+
+            log.info("Trying Gemini model: {}", fallbackModel);
+            model = tryCreateGeminiModel(config.getApiKey(), fallbackModel, config);
+            if (model != null) {
+                log.info("Successfully connected using Gemini model: {}", fallbackModel);
+                return model;
+            }
+        }
+
+        throw new IllegalStateException(
+            "Could not connect to any Gemini model. Please check:\n" +
+            "1. Your API key is valid (get from https://aistudio.google.com/app/apikey)\n" +
+            "2. Gemini API is enabled for your project\n" +
+            "3. Your region has access to Gemini models\n\n" +
+            "Tried models: " + String.join(", ", GEMINI_MODELS_TO_TRY)
+        );
+    }
+
+    /**
+     * Try to create Gemini model, return null if fails
+     */
+    private static ChatLanguageModel tryCreateGeminiModel(String apiKey, String modelName, LLMConfig config) {
+        try {
+            ChatLanguageModel model = GoogleAiGeminiChatModel.builder()
+                .apiKey(apiKey)
+                .modelName(modelName)
+                .temperature(config.getTemperature())
+                .maxOutputTokens(config.getMaxTokens())
+                .logRequestsAndResponses(false)
+                .build();
+
+            // Try a test call to verify it works
+            // Note: This is optional and might increase startup time
+            // model.generate("test");
+
+            return model;
+        } catch (Exception e) {
+            log.debug("Failed to create Gemini model '{}': {}", modelName, e.getMessage());
+            return null;
+        }
     }
 
     /**
